@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { InventoryItem } from '../types';
+import { InventoryItem } from '../types.ts';
 
 interface InventoryTableProps {
   items: InventoryItem[];

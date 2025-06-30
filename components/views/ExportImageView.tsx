@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
-import PageWrapper from '../PageWrapper';
-import ReportsView from './ReportsView'; // Reuse the report view for the preview
-import { InventoryItem } from '../../types';
+import PageWrapper from '../PageWrapper.tsx';
+import ReportsView from './ReportsView.tsx'; // Reuse the report view for the preview
+import { InventoryItem } from '../../types.ts';
 
 declare const html2canvas: any;
 
