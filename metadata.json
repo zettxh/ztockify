@@ -1,0 +1,6 @@
+{
+  "name": "Ztockify",
+  "description": "An intuitive inventory management system to track clothing stock. Features include adding items, recording outbound stock, viewing history, generating reports, and data management.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
