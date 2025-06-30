@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import PageWrapper from '../PageWrapper';
 
@@ -15,7 +16,7 @@ const DataManagementView: React.FC<DataManagementViewProps> = ({ onExport, onImp
 
   return (
     <PageWrapper title="Data Management">
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Export Section */}
         <section>
           <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200">Export Data</h3>

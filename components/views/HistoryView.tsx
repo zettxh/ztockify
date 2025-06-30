@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { HistoryLogEntry, ItemCategory } from '../../types';
 import PageWrapper from '../PageWrapper';
@@ -39,7 +40,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ history }) => {
 
   return (
     <PageWrapper title="Stock Movement History">
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
         <select
           value={filterCategory}
           onChange={e => setFilterCategory(e.target.value as ItemCategory | 'All')}
@@ -63,25 +64,25 @@ const HistoryView: React.FC<HistoryViewProps> = ({ history }) => {
           <thead className="bg-slate-50 dark:bg-slate-700">
             <tr>
               {['DATE', 'CATEGORY', 'SIZE', 'TYPE', 'QUANTITY CHANGE', 'NEW QUANTITY'].map(header => (
-                <th key={header} scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{header}</th>
+                <th key={header} scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{header}</th>
               ))}
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
             {filteredAndSortedHistory.length > 0 ? filteredAndSortedHistory.map(log => (
               <tr key={log.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">{formatDate(log.date)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">{log.category}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">{log.size}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <td className="px-2 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">{formatDate(log.date)}</td>
+                <td className="px-2 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">{log.category}</td>
+                <td className="px-2 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">{log.size}</td>
+                <td className="px-2 sm:px-6 py-4 whitespace-nowrap text-sm">
                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${log.type.startsWith('IN') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                        {log.type}
                    </span>
                 </td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${log.quantityChange.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
+                <td className={`px-2 sm:px-6 py-4 whitespace-nowrap text-sm font-medium ${log.quantityChange.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
                     {log.quantityChange}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 dark:text-slate-200">{log.newQuantity}</td>
+                <td className="px-2 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 dark:text-slate-200">{log.newQuantity}</td>
               </tr>
             )) : (
               <tr>

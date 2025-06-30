@@ -179,7 +179,7 @@ const App: React.FC = () => {
         theme={theme}
         toggleTheme={toggleTheme}
       />
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="container mx-auto p-2 sm:p-4 md:p-6">
         {renderView()}
       </main>
       <SuccessModal
