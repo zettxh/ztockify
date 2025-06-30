@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ztockify-cache-v1';
+const CACHE_NAME = 'ztockify-cache-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -25,17 +25,19 @@ const urlsToCache = [
   './components/views/ReportsView.tsx',
   'https://cdn.tailwindcss.com',
   'https://rsms.me/inter/inter.css',
-  'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'
+  'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+  'https://unpkg.com/@babel/standalone@7.24.7/babel.min.js'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('Opened cache and caching URLs');
         return cache.addAll(urlsToCache);
       })
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -45,11 +47,12 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -57,7 +60,19 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
     return;
   }
-  
+
+  // Network-first strategy for navigation requests (the HTML file)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Cache-first strategy for all other assets
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -80,6 +95,7 @@ self.addEventListener('fetch', (event) => {
           }
         ).catch(error => {
             console.error('Fetching failed:', error);
+            // Optional: return an offline fallback page for images etc.
             throw error;
         });
       })
