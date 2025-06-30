@@ -1,19 +1,19 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
-import useLocalStorage from './hooks/useLocalStorage';
-import { InventoryItem, ItemCategory, HistoryLogEntry, HistoryType, View } from './types';
-import useTheme from './hooks/useTheme';
+import useLocalStorage from './hooks/useLocalStorage.ts';
+import { InventoryItem, ItemCategory, HistoryLogEntry, HistoryType, View } from './types.ts';
+import useTheme from './hooks/useTheme.ts';
 
-import Navigation from './components/Navigation';
-import SuccessModal from './components/SuccessModal';
-import InventoryView from './components/views/InventoryView';
-import LowStocksView from './components/views/LowStocksView';
-import AddItemView from './components/views/AddItemView';
-import OutboundView from './components/views/OutboundView';
-import HistoryView from './components/views/HistoryView';
-import ReportsView from './components/views/ReportsView';
-import ExportImageView from './components/views/ExportImageView';
-import DataManagementView from './components/views/DataManagementView';
+import Navigation from './components/Navigation.tsx';
+import SuccessModal from './components/SuccessModal.tsx';
+import InventoryView from './components/views/InventoryView.tsx';
+import LowStocksView from './components/views/LowStocksView.tsx';
+import AddItemView from './components/views/AddItemView.tsx';
+import OutboundView from './components/views/OutboundView.tsx';
+import HistoryView from './components/views/HistoryView.tsx';
+import ReportsView from './components/views/ReportsView.tsx';
+import ExportImageView from './components/views/ExportImageView.tsx';
+import DataManagementView from './components/views/DataManagementView.tsx';
 
 const App: React.FC = () => {
   const [theme, toggleTheme] = useTheme();
@@ -179,7 +179,7 @@ const App: React.FC = () => {
         theme={theme}
         toggleTheme={toggleTheme}
       />
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="container mx-auto p-2 sm:p-4 md:p-6">
         {renderView()}
       </main>
       <SuccessModal

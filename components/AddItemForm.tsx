@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { InventoryItem, ItemCategory } from '../types';
+import { InventoryItem, ItemCategory } from '../types.ts';
 
 interface AddItemFormProps {
   onAddItem: (item: Omit<InventoryItem, 'id'>) => void;

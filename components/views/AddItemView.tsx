@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
-import { ItemCategory } from '../../types';
-import PageWrapper from '../PageWrapper';
+import { ItemCategory } from '../../types.ts';
+import PageWrapper from '../PageWrapper.tsx';
 
 interface AddItemViewProps {
   onAddItem: (item: { category: ItemCategory; quantity: number; size: string }) => void;
@@ -29,8 +30,8 @@ const AddItemView: React.FC<AddItemViewProps> = ({ onAddItem }) => {
 
   return (
     <PageWrapper title="Add New Item">
-      <div className="max-w-lg mx-auto">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="max-w-md mx-auto">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="category" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
             <select
@@ -67,8 +68,8 @@ const AddItemView: React.FC<AddItemViewProps> = ({ onAddItem }) => {
               placeholder="e.g., M, L, 32, etc."
             />
           </div>
-          <div className="pt-4">
-            <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <div className="pt-2">
+            <button type="submit" className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
               Add Item
             </button>
           </div>

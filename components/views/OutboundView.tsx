@@ -1,6 +1,7 @@
+
 import React, { useState, useMemo } from 'react';
-import { InventoryItem, ItemCategory } from '../../types';
-import PageWrapper from '../PageWrapper';
+import { InventoryItem, ItemCategory } from '../../types.ts';
+import PageWrapper from '../PageWrapper.tsx';
 
 interface OutboundViewProps {
   inventory: InventoryItem[];
@@ -31,7 +32,7 @@ const OutboundView: React.FC<OutboundViewProps> = ({ inventory, onOutbound }) =>
 
   return (
     <PageWrapper title="Record Outbound Item">
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
         <select
           value={filterCategory}
           onChange={e => setFilterCategory(e.target.value as ItemCategory | 'All')}
@@ -51,24 +52,24 @@ const OutboundView: React.FC<OutboundViewProps> = ({ inventory, onOutbound }) =>
 
       <div className="space-y-3">
         {filteredInventory.length > 0 ? filteredInventory.map(item => (
-          <div key={item.id} className="flex items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+          <div key={item.id} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
             <div>
               <p className="font-semibold text-slate-800 dark:text-slate-200">{item.category} ({item.size})</p>
               <p className="text-sm text-slate-500 dark:text-slate-400">Stock: {item.quantity}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-end sm:self-center">
               <input 
                 type="number"
                 placeholder="Qty"
                 value={quantities[item.id] || ''}
                 onChange={e => handleQuantityChange(item.id, e.target.value)}
-                className="w-20 px-2 py-1 bg-white dark:bg-slate-600 border border-slate-300 dark:border-slate-500 rounded-md text-center"
+                className="w-20 px-2 py-1.5 bg-white dark:bg-slate-600 border border-slate-300 dark:border-slate-500 rounded-md text-center"
                 min="1"
                 max={item.quantity}
               />
               <button 
                 onClick={() => handleOutboundClick(item)}
-                className="px-4 py-1.5 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-slate-400"
+                className="px-3 sm:px-4 py-1.5 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-slate-400"
                 disabled={!quantities[item.id] || parseInt(quantities[item.id] || '0') <= 0 || parseInt(quantities[item.id] || '0') > item.quantity}
               >
                 Out

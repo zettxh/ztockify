@@ -4,9 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ztockify</title>
-    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#4f46e5" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -22,9 +23,9 @@
   <script type="importmap">
 {
   "imports": {
-    "react/": "https://esm.sh/react@%5E19.1.0/",
-    "react": "https://esm.sh/react@%5E19.1.0",
-    "react-dom/": "https://esm.sh/react-dom@%5E19.1.0/"
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/"
   }
 }
 </script>
@@ -32,6 +33,547 @@
 </head>
   <body class="bg-slate-100 dark:bg-slate-900">
     <div id="root"></div>
+    <script type="module">
+      import React, { useState, useEffect, useMemo, useCallback, useRef } from 'https://esm.sh/react@18.2.0';
+      import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
+      import html2canvas from 'https://esm.sh/html2canvas@1.4.1';
+
+      // --- BUNDLED APPLICATION CODE ---
+      
+      // From: types.ts
+      const ItemCategory = {
+        Baju: 'Baju',
+        Celana: 'Celana',
+        Rok: 'Rok',
+      };
+
+      // From: hooks/useLocalStorage.ts
+      function useLocalStorage(key, initialValue) {
+        const [storedValue, setStoredValue] = useState(() => {
+          if (typeof window === 'undefined') {
+            return initialValue;
+          }
+          try {
+            const item = window.localStorage.getItem(key);
+            return item ? JSON.parse(item) : initialValue;
+          } catch (error) {
+            console.error(error);
+            return initialValue;
+          }
+        });
+
+        useEffect(() => {
+          try {
+            const valueToStore = typeof storedValue === 'function' ? storedValue(storedValue) : storedValue;
+            window.localStorage.setItem(key, JSON.stringify(valueToStore));
+          } catch (error) {
+            console.error(error);
+          }
+        }, [key, storedValue]);
+
+        return [storedValue, setStoredValue];
+      }
+      
+      // From: hooks/useTheme.ts
+      const useTheme = () => {
+        const [theme, setTheme] = useLocalStorage('ztockify_theme', 
+          (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'
+        );
+
+        useEffect(() => {
+          if (typeof window !== 'undefined') {
+            const root = window.document.documentElement;
+            const isDark = theme === 'dark';
+            root.classList.toggle('dark', isDark);
+          }
+        }, [theme]);
+
+        const toggleTheme = () => {
+          setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+        };
+
+        return [theme, toggleTheme];
+      }
+      
+      // From: components/PageWrapper.tsx
+      const PageWrapper = ({ title, children }) => {
+        return React.createElement("div", { className: "bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-xl shadow-lg animate-fade-in" },
+          React.createElement("h2", { className: "text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4 pb-3 border-b border-slate-200 dark:border-slate-700" }, title),
+          React.createElement("div", { className: "space-y-4" }, children)
+        );
+      };
+
+      // From: components/SuccessModal.tsx
+      const SuccessModal = ({ isOpen, onClose, title, message }) => {
+          if (!isOpen) return null;
+          return React.createElement("div", { className: "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm", onClick: onClose, "aria-modal": "true", role: "dialog" },
+              React.createElement("div", { className: "relative w-full max-w-md p-6 mx-4 bg-white rounded-lg shadow-xl dark:bg-slate-800", onClick: (e) => e.stopPropagation() },
+                  React.createElement("div", { className: "text-center" },
+                      React.createElement("h3", { className: "text-xl font-semibold text-slate-800 dark:text-slate-100" }, title),
+                      React.createElement("div", { className: "mt-2" },
+                          React.createElement("p", { className: "text-sm text-slate-500 dark:text-slate-400" }, message)
+                      )
+                  ),
+                  React.createElement("div", { className: "mt-5 text-center" },
+                      React.createElement("button", { type: "button", onClick: onClose, className: "w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" }, "OK")
+                  )
+              )
+          );
+      };
+      
+      // From: components/ThemeToggle.tsx
+      const ThemeToggle = ({ theme, toggleTheme }) => {
+          const sunIcon = React.createElement("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-6 w-6", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", strokeWidth: 2 }, React.createElement("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" }));
+          const moonIcon = React.createElement("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-6 w-6", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", strokeWidth: 2 }, React.createElement("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" }));
+          return React.createElement("button", { onClick: toggleTheme, className: "p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-slate-800 transition-colors duration-200", "aria-label": "Toggle theme" },
+              React.createElement("span", { className: "sr-only" }, "Toggle theme"),
+              theme === 'dark' ? sunIcon : moonIcon
+          );
+      };
+      
+      // From: components/Navigation.tsx
+      const NavButton = ({ label, activeView, onClick, badgeCount }) => {
+          const isActive = label === activeView;
+          const activeClasses = 'bg-indigo-500 text-white shadow-md';
+          const inactiveClasses = 'bg-white hover:bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600';
+          return React.createElement("button", { onClick: onClick, className: `relative px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold rounded-md transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isActive ? activeClasses : inactiveClasses}` },
+              label,
+              badgeCount !== undefined && badgeCount > 0 && (React.createElement("span", { className: "absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white" }, badgeCount))
+          );
+      };
+      const Navigation = ({ activeView, setActiveView, lowStockCount, theme, toggleTheme }) => {
+          const views = ['Inventory', 'Low Stocks', 'Add Item', 'Outbound', 'History', 'Reports', 'Export Image', 'Data Management'];
+          return React.createElement("header", { className: "bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm shadow-sm sticky top-0 z-30" },
+              React.createElement("div", { className: "container mx-auto px-2 sm:px-4 md:px-6" },
+                  React.createElement("div", { className: "relative flex items-center justify-center py-4" },
+                      React.createElement("h1", { className: "text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white" }, "Ztockify"),
+                      React.createElement("div", { className: "absolute right-0" }, React.createElement(ThemeToggle, { theme: theme, toggleTheme: toggleTheme }))
+                  ),
+                  React.createElement("div", { className: "flex justify-center border-t border-slate-200 dark:border-slate-700" },
+                      React.createElement("nav", { className: "flex items-center space-x-1 p-1 sm:p-2 overflow-x-auto" },
+                          views.map(view => React.createElement(NavButton, { key: view, label: view, activeView: activeView, onClick: () => setActiveView(view), badgeCount: view === 'Low Stocks' ? lowStockCount : undefined }))
+                      )
+                  )
+              )
+          );
+      };
+
+      // From: components/views/ReportsView.tsx
+      const ReportsView = ({ inventory, isPreview = false }) => {
+          const reportData = useMemo(() => {
+              const grouped = {};
+              inventory.forEach(item => {
+                  if (!grouped[item.category]) {
+                      grouped[item.category] = [];
+                  }
+                  grouped[item.category].push({ size: item.size, quantity: item.quantity });
+              });
+              Object.keys(grouped).forEach(category => {
+                  grouped[category].sort((a, b) => a.size.localeCompare(b.size, undefined, { numeric: true }));
+              });
+              return grouped;
+          }, [inventory]);
+
+          const content = React.createElement("div", { className: "space-y-6" },
+              Object.keys(reportData).length > 0 ? Object.entries(reportData).map(([category, items]) => React.createElement("div", { key: category },
+                  React.createElement("h3", { className: "text-xl font-semibold text-slate-800 dark:text-slate-100 mb-3" }, category),
+                  React.createElement("div", { className: "border-t border-slate-200 dark:border-slate-700" },
+                      React.createElement("div", { className: "grid grid-cols-2 gap-x-4 px-2 sm:px-4 py-2 bg-slate-50 dark:bg-slate-700/50" },
+                          React.createElement("span", { className: "text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider" }, "SIZE"),
+                          React.createElement("span", { className: "text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider" }, "QUANTITY")
+                      ),
+                      items.map(item => React.createElement("div", { key: item.size, className: "grid grid-cols-2 gap-x-4 px-2 sm:px-4 py-3 border-t border-slate-200 dark:border-slate-700" },
+                          React.createElement("span", { className: "text-sm text-slate-600 dark:text-slate-400" }, item.size),
+                          React.createElement("span", { className: "text-sm font-medium text-slate-800 dark:text-slate-200" }, item.quantity)
+                      ))
+                  )
+              )) : React.createElement("div", { className: "text-center py-10 text-slate-500 dark:text-slate-400" }, "Inventory is empty. Nothing to report.")
+          );
+
+          if (isPreview) { return content; }
+          return React.createElement(PageWrapper, { title: "Inventory Summary Report" }, content);
+      };
+      
+      // From: components/views/InventoryView.tsx
+      const InventoryView = ({ inventory, onRemove, onUpdate }) => {
+          const [filterCategory, setFilterCategory] = useState('All');
+          const [sort, setSort] = useState('None');
+          const categories = useMemo(() => [...new Set(inventory.map(i => i.category))], [inventory]);
+          const filteredAndSortedInventory = useMemo(() => {
+              let result = [...inventory];
+              if (filterCategory !== 'All') {
+                  result = result.filter(item => item.category === filterCategory);
+              }
+              if (sort === 'Quantity (Asc)') {
+                  result.sort((a, b) => a.quantity - b.quantity);
+              } else if (sort === 'Quantity (Desc)') {
+                  result.sort((a, b) => b.quantity - a.quantity);
+              }
+              return result;
+          }, [inventory, filterCategory, sort]);
+          return React.createElement(PageWrapper, { title: "Current Inventory" },
+              React.createElement("div", { className: "flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4" },
+                  React.createElement("select", { value: filterCategory, onChange: e => setFilterCategory(e.target.value), className: "block w-full sm:w-auto px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900 dark:text-slate-100" },
+                      React.createElement("option", { value: "All" }, "Filter by Category: All"),
+                      categories.map(cat => React.createElement("option", { key: cat, value: cat }, cat))
+                  ),
+                  React.createElement("select", { value: sort, onChange: e => setSort(e.target.value), className: "block w-full sm:w-auto px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900 dark:text-slate-100" },
+                      React.createElement("option", null, "Sort by Quantity: None"),
+                      React.createElement("option", null, "Quantity (Asc)"),
+                      React.createElement("option", null, "Quantity (Desc)")
+                  )
+              ),
+              React.createElement("div", { className: "overflow-x-auto" },
+                  React.createElement("table", { className: "min-w-full divide-y divide-slate-200 dark:divide-slate-700" },
+                      React.createElement("thead", { className: "bg-slate-50 dark:bg-slate-700" },
+                          React.createElement("tr", null, ['CATEGORY', 'SIZE', 'QUANTITY', 'ACTIONS'].map(header => React.createElement("th", { key: header, scope: "col", className: "px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider" }, header)))
+                      ),
+                      React.createElement("tbody", { className: "bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700" },
+                          filteredAndSortedInventory.length > 0 ? filteredAndSortedInventory.map(item => React.createElement("tr", { key: item.id },
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 dark:text-slate-200" }, item.category),
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400" }, item.size),
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 dark:text-slate-200" }, item.quantity),
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 sm:space-x-4" },
+                                  React.createElement("button", { onClick: () => alert('Update feature coming soon!'), className: "text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300" }, "Update"),
+                                  React.createElement("button", { onClick: () => onRemove(item.id), className: "text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" }, "Remove")
+                              )
+                          )) : React.createElement("tr", null, React.createElement("td", { colSpan: 4, className: "text-center py-10 text-slate-500 dark:text-slate-400" }, "No inventory items."))
+                      )
+                  )
+              )
+          );
+      };
+      
+      // From: components/views/LowStocksView.tsx
+      const LowStocksView = ({ inventory }) => {
+          const lowStockItems = useMemo(() => {
+              return inventory.filter(item => item.quantity <= 10).sort((a, b) => a.quantity - b.quantity);
+          }, [inventory]);
+          return React.createElement(PageWrapper, { title: "Low Stock Items (<= 10)" },
+              React.createElement("div", { className: "overflow-x-auto" },
+                  React.createElement("table", { className: "min-w-full divide-y divide-slate-200 dark:divide-slate-700" },
+                      React.createElement("thead", { className: "bg-slate-50 dark:bg-slate-700" },
+                          React.createElement("tr", null, ['CATEGORY', 'SIZE', 'QUANTITY'].map(header => React.createElement("th", { key: header, scope: "col", className: "px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider" }, header)))
+                      ),
+                      React.createElement("tbody", { className: "bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700" },
+                          lowStockItems.length > 0 ? lowStockItems.map(item => React.createElement("tr", { key: item.id },
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 dark:text-slate-200" }, item.category),
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400" }, item.size),
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm font-bold text-red-500" }, item.quantity)
+                          )) : React.createElement("tr", null, React.createElement("td", { colSpan: 3, className: "text-center py-10 text-slate-500 dark:text-slate-400" }, "No low stock items."))
+                      )
+                  )
+              )
+          );
+      };
+      
+      // From: components/views/AddItemView.tsx
+      const AddItemView = ({ onAddItem }) => {
+          const [category, setCategory] = useState(ItemCategory.Baju);
+          const [quantity, setQuantity] = useState('');
+          const [size, setSize] = useState('');
+          const handleSubmit = (e) => {
+              e.preventDefault();
+              const numQuantity = parseInt(quantity, 10);
+              if (!size.trim()) { alert('Please enter a size.'); return; }
+              if (isNaN(numQuantity) || numQuantity <= 0) { alert('Please enter a valid, positive quantity.'); return; }
+              onAddItem({ category, quantity: numQuantity, size });
+              setQuantity('');
+              setSize('');
+          };
+          return React.createElement(PageWrapper, { title: "Add New Item" },
+              React.createElement("div", { className: "max-w-md mx-auto" },
+                  React.createElement("form", { onSubmit: handleSubmit, className: "space-y-4" },
+                      React.createElement("div", null,
+                          React.createElement("label", { htmlFor: "category", className: "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" }, "Category"),
+                          React.createElement("select", { id: "category", value: category, onChange: (e) => setCategory(e.target.value), className: "mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900 dark:text-slate-100" },
+                              Object.values(ItemCategory).map((cat) => React.createElement("option", { key: cat, value: cat }, cat))
+                          )
+                      ),
+                      React.createElement("div", null,
+                          React.createElement("label", { htmlFor: "quantity", className: "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" }, "Quantity"),
+                          React.createElement("input", { type: "number", id: "quantity", value: quantity, onChange: (e) => setQuantity(e.target.value), className: "mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900 dark:text-slate-100", placeholder: "e.g., 10", min: "1" })
+                      ),
+                      React.createElement("div", null,
+                          React.createElement("label", { htmlFor: "size", className: "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" }, "Size"),
+                          React.createElement("input", { type: "text", id: "size", value: size, onChange: (e) => setSize(e.target.value), className: "mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900 dark:text-slate-100", placeholder: "e.g., M, L, 32, etc." })
+                      ),
+                      React.createElement("div", { className: "pt-2" },
+                          React.createElement("button", { type: "submit", className: "w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" }, "Add Item")
+                      )
+                  )
+              )
+          );
+      };
+
+      // From: components/views/OutboundView.tsx
+      const OutboundView = ({ inventory, onOutbound }) => {
+          const [quantities, setQuantities] = useState({});
+          const [filterCategory, setFilterCategory] = useState('All');
+          const [searchSize, setSearchSize] = useState('');
+          const handleQuantityChange = (id, value) => {
+              setQuantities(prev => ({...prev, [id]: value }));
+          };
+          const handleOutboundClick = (item) => {
+              const quantity = parseInt(quantities[item.id] || '0', 10);
+              onOutbound(item, quantity);
+              setQuantities(prev => ({...prev, [item.id]: '' }));
+          };
+          const filteredInventory = useMemo(() => {
+              return inventory
+                  .filter(item => item.quantity > 0)
+                  .filter(item => filterCategory === 'All' || item.category === filterCategory)
+                  .filter(item => item.size.toLowerCase().includes(searchSize.toLowerCase()));
+          }, [inventory, filterCategory, searchSize]);
+          return React.createElement(PageWrapper, { title: "Record Outbound Item" },
+              React.createElement("div", { className: "flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4" },
+                  React.createElement("select", { value: filterCategory, onChange: e => setFilterCategory(e.target.value), className: "block w-full sm:w-auto px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900 dark:text-slate-100" },
+                      React.createElement("option", { value: "All" }, "Filter by Category: All"),
+                      [...new Set(inventory.map(i => i.category))].map(cat => React.createElement("option", { key: cat, value: cat }, cat))
+                  ),
+                  React.createElement("input", { type: "text", placeholder: "Search by size...", value: searchSize, onChange: e => setSearchSize(e.target.value), className: "block w-full sm:w-auto px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900 dark:text-slate-100" })
+              ),
+              React.createElement("div", { className: "space-y-3" },
+                  filteredInventory.length > 0 ? filteredInventory.map(item => React.createElement("div", { key: item.id, className: "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg" },
+                      React.createElement("div", null,
+                          React.createElement("p", { className: "font-semibold text-slate-800 dark:text-slate-200" }, `${item.category} (${item.size})`),
+                          React.createElement("p", { className: "text-sm text-slate-500 dark:text-slate-400" }, `Stock: ${item.quantity}`)
+                      ),
+                      React.createElement("div", { className: "flex items-center gap-2 self-end sm:self-center" },
+                          React.createElement("input", { type: "number", placeholder: "Qty", value: quantities[item.id] || '', onChange: e => handleQuantityChange(item.id, e.target.value), className: "w-20 px-2 py-1.5 bg-white dark:bg-slate-600 border border-slate-300 dark:border-slate-500 rounded-md text-center", min: "1", max: item.quantity }),
+                          React.createElement("button", { onClick: () => handleOutboundClick(item), className: "px-3 sm:px-4 py-1.5 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-slate-400", disabled: !quantities[item.id] || parseInt(quantities[item.id] || '0') <= 0 || parseInt(quantities[item.id] || '0') > item.quantity }, "Out")
+                      )
+                  )) : React.createElement("div", { className: "text-center py-10 text-slate-500 dark:text-slate-400" }, "No items available for outbound transaction.")
+              )
+          );
+      };
+      
+      // From: components/views/HistoryView.tsx
+      const HistoryView = ({ history }) => {
+          const [filterCategory, setFilterCategory] = useState('All');
+          const [sortOrder, setSortOrder] = useState('Newest First');
+          const categories = useMemo(() => [...new Set(history.map(h => h.category))], [history]);
+          const filteredAndSortedHistory = useMemo(() => {
+              let result = [...history];
+              if (filterCategory !== 'All') {
+                  result = result.filter(h => h.category === filterCategory);
+              }
+              result.sort((a, b) => sortOrder === 'Newest First' ? b.date - a.date : a.date - b.date);
+              return result;
+          }, [history, filterCategory, sortOrder]);
+          const formatDate = (timestamp) => new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(timestamp)).replace(/,/g, '');
+          return React.createElement(PageWrapper, { title: "Stock Movement History" },
+              React.createElement("div", { className: "flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4" },
+                  React.createElement("select", { value: filterCategory, onChange: e => setFilterCategory(e.target.value), className: "block w-full sm:w-auto px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900 dark:text-slate-100" },
+                      React.createElement("option", { value: "All" }, "Filter by Category: All"),
+                      categories.map(cat => React.createElement("option", { key: cat, value: cat }, cat))
+                  ),
+                  React.createElement("select", { value: sortOrder, onChange: e => setSortOrder(e.target.value), className: "block w-full sm:w-auto px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900 dark:text-slate-100" },
+                      React.createElement("option", null, "Sort by Date: Newest First"),
+                      React.createElement("option", null, "Sort by Date: Oldest First")
+                  )
+              ),
+              React.createElement("div", { className: "overflow-x-auto" },
+                  React.createElement("table", { className: "min-w-full divide-y divide-slate-200 dark:divide-slate-700" },
+                      React.createElement("thead", { className: "bg-slate-50 dark:bg-slate-700" },
+                          React.createElement("tr", null, ['DATE', 'CATEGORY', 'SIZE', 'TYPE', 'QUANTITY CHANGE', 'NEW QUANTITY'].map(header => React.createElement("th", { key: header, scope: "col", className: "px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider" }, header)))
+                      ),
+                      React.createElement("tbody", { className: "bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700" },
+                          filteredAndSortedHistory.length > 0 ? filteredAndSortedHistory.map(log => React.createElement("tr", { key: log.id },
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400" }, formatDate(log.date)),
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200" }, log.category),
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200" }, log.size),
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm" }, React.createElement("span", { className: `px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${log.type.startsWith('IN') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}` }, log.type)),
+                              React.createElement("td", { className: `px-2 sm:px-6 py-4 whitespace-nowrap text-sm font-medium ${log.quantityChange.startsWith('+') ? 'text-green-600' : 'text-red-600'}` }, log.quantityChange),
+                              React.createElement("td", { className: "px-2 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 dark:text-slate-200" }, log.newQuantity)
+                          )) : React.createElement("tr", null, React.createElement("td", { colSpan: 6, className: "text-center py-10 text-slate-500 dark:text-slate-400" }, "No history records found."))
+                      )
+                  )
+              )
+          );
+      };
+      
+      // From: components/views/ExportImageView.tsx
+      const ExportImageView = ({ inventory }) => {
+          const reportPreviewRef = useRef(null);
+          const handleExportAsImage = () => {
+              if (reportPreviewRef.current) {
+                  html2canvas(reportPreviewRef.current, { useCORS: true, backgroundColor: '#ffffff', scale: 2 })
+                      .then((canvas) => {
+                          const image = canvas.toDataURL('image/png', 1.0);
+                          const link = document.createElement('a');
+                          link.download = 'inventory_report.png';
+                          link.href = image;
+                          link.click();
+                      }).catch((err) => {
+                          console.error("Error exporting image:", err);
+                          alert("Could not export image. See console for details.");
+                      });
+              }
+          };
+          return React.createElement(PageWrapper, { title: "Export Report as Image" },
+              React.createElement("div", { className: "space-y-4" },
+                  React.createElement("p", { className: "text-sm text-slate-600 dark:text-slate-400" }, "Click the button below to download the current inventory summary as a PNG image file."),
+                  React.createElement("button", { onClick: handleExportAsImage, className: "px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" }, "Export as image")
+              ),
+              React.createElement("div", { className: "mt-8 border-t border-slate-200 dark:border-slate-700 pt-6" },
+                  React.createElement("h3", { className: "text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4" }, "Report Preview"),
+                  React.createElement("div", { ref: reportPreviewRef, className: "p-4 bg-white" }, React.createElement(ReportsView, { inventory: inventory, isPreview: true }))
+              )
+          );
+      };
+      
+      // From: components/views/DataManagementView.tsx
+      const DataManagementView = ({ onExport, onImport }) => {
+          const fileInputRef = useRef(null);
+          const handleImportClick = () => { fileInputRef.current?.click(); };
+          return React.createElement(PageWrapper, { title: "Data Management" },
+              React.createElement("div", { className: "space-y-6" },
+                  React.createElement("section", null,
+                      React.createElement("h3", { className: "text-lg font-semibold text-slate-700 dark:text-slate-200" }, "Export Data"),
+                      React.createElement("p", { className: "mt-1 text-sm text-slate-500 dark:text-slate-400" }, "Click the button below to download your current inventory, sales, and history data as a JSON file."),
+                      React.createElement("div", { className: "mt-4" }, React.createElement("button", { onClick: onExport, className: "px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" }, "Export Data"))
+                  ),
+                  React.createElement("section", null,
+                      React.createElement("h3", { className: "text-lg font-semibold text-slate-700 dark:text-slate-200" }, "Import Data"),
+                      React.createElement("p", { className: "mt-1 text-sm text-slate-500 dark:text-slate-400" }, "Select a previously exported JSON file to restore your data."),
+                      React.createElement("p", { className: "mt-1 text-sm text-red-600 dark:text-red-400" }, React.createElement("strong", null, "Warning:"), " This will overwrite all current data."),
+                      React.createElement("p", { className: "mt-2 text-xs text-slate-500 dark:text-slate-400" }, React.createElement("strong", null, "Format:"), " The JSON file must be an object with three keys: 'inventory', 'salesLog', and 'historyLog'."),
+                      React.createElement("div", { className: "mt-4" },
+                          React.createElement("button", { onClick: handleImportClick, className: "px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600" }, "Choose File"),
+                          React.createElement("input", { type: "file", ref: fileInputRef, onChange: onImport, accept: ".json", className: "hidden" })
+                      )
+                  )
+              )
+          );
+      };
+      
+      // From: App.tsx
+      const App = () => {
+        const [theme, toggleTheme] = useTheme();
+        const [inventory, setInventory] = useLocalStorage('ztockify_inventory', []);
+        const [historyLog, setHistoryLog] = useLocalStorage('ztockify_history', []);
+        const [activeView, setActiveView] = useState('Outbound');
+        const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
+        const lowStockCount = useMemo(() => inventory.filter(item => item.quantity <= 10).length, [inventory]);
+
+        const addHistoryEntry = useCallback((category, size, type, quantityChange, newQuantity) => {
+            const newEntry = { id: new Date().toISOString() + Math.random(), date: Date.now(), category, size, type, quantityChange, newQuantity };
+            setHistoryLog(prev => [newEntry, ...prev]);
+        }, [setHistoryLog]);
+
+        const handleShowSuccessModal = (title, message) => { setSuccessModal({ isOpen: true, title, message }); };
+
+        const handleAddItem = (newItem) => {
+            const { category, quantity, size } = newItem;
+            setInventory(prev => {
+                const existingItemIndex = prev.findIndex(item => item.category === category && item.size.toLowerCase() === size.toLowerCase());
+                if (existingItemIndex !== -1) {
+                    const updatedInventory = [...prev];
+                    const existingItem = updatedInventory[existingItemIndex];
+                    const newQuantity = existingItem.quantity + quantity;
+                    updatedInventory[existingItemIndex] = { ...existingItem, quantity: newQuantity };
+                    addHistoryEntry(category, existingItem.size, 'IN (Add)', `+${quantity}`, newQuantity);
+                    handleShowSuccessModal('Success', `Added ${quantity} to existing item: ${category} (${existingItem.size}).`);
+                    return updatedInventory;
+                } else {
+                    const newItemEntry = { id: `${category}-${size}-${Date.now()}`, category, quantity, size };
+                    addHistoryEntry(category, size, 'IN (New)', `+${quantity}`, quantity);
+                    handleShowSuccessModal('Success', 'New item added successfully!');
+                    return [...prev, newItemEntry];
+                }
+            });
+        };
+
+        const handleOutbound = (item, quantity) => {
+            if (quantity <= 0 || quantity > item.quantity) {
+                alert("Please enter a valid quantity.");
+                return;
+            }
+            const newQuantity = item.quantity - quantity;
+            setInventory(prev => prev.map(i => i.id === item.id ? {...i, quantity: newQuantity } : i));
+            addHistoryEntry(item.category, item.size, 'OUT', `-${quantity}`, newQuantity);
+            handleShowSuccessModal('Success', 'Outbound transaction recorded successfully!');
+        };
+        
+        const handleRemoveItem = (id) => {
+          const itemToRemove = inventory.find(i => i.id === id);
+          if (itemToRemove && window.confirm(`Are you sure you want to remove ${itemToRemove.category} (${itemToRemove.size})? This action cannot be undone.`)) {
+            setInventory(prev => prev.filter(i => i.id !== id));
+            addHistoryEntry(itemToRemove.category, itemToRemove.size, 'DELETE', `-${itemToRemove.quantity}`, 0);
+            handleShowSuccessModal('Success', 'Item removed successfully.');
+          }
+        };
+
+        const handleUpdateItem = (id, newQuantity) => { console.log(`Updating item ${id} to quantity ${newQuantity}`); };
+        
+        const handleExportData = () => {
+            const dataToExport = { inventory, historyLog };
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', `ztockify_backup_${new Date().toISOString().split('T')[0]}.json`);
+            linkElement.click();
+        };
+
+        const handleImportData = (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const text = e.target?.result;
+                    if (typeof text !== 'string') throw new Error("File is not readable.");
+                    const data = JSON.parse(text);
+                    if (!data.inventory || !data.historyLog) throw new Error("Invalid file format.");
+                    setInventory(data.inventory);
+                    setHistoryLog(data.historyLog);
+                    handleShowSuccessModal('Success', 'Data imported successfully!');
+                } catch (error) {
+                    alert(`Import failed: ${error.message}`);
+                } finally {
+                    if (event.target) event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
+        };
+        
+        const renderView = () => {
+          const sharedProps = { inventory };
+          switch (activeView) {
+            case 'Inventory': return React.createElement(InventoryView, { inventory, onRemove: handleRemoveItem, onUpdate: handleUpdateItem });
+            case 'Low Stocks': return React.createElement(LowStocksView, { inventory });
+            case 'Add Item': return React.createElement(AddItemView, { onAddItem: handleAddItem });
+            case 'Outbound': return React.createElement(OutboundView, { inventory, onOutbound: handleOutbound });
+            case 'History': return React.createElement(HistoryView, { history: historyLog });
+            case 'Reports': return React.createElement(ReportsView, { ...sharedProps });
+            case 'Export Image': return React.createElement(ExportImageView, { ...sharedProps });
+            case 'Data Management': return React.createElement(DataManagementView, { onExport: handleExportData, onImport: handleImportData });
+            default: return React.createElement(OutboundView, { inventory, onOutbound: handleOutbound });
+          }
+        };
+
+        return React.createElement("div", { className: "min-h-screen font-sans text-slate-800 dark:text-slate-200" },
+          React.createElement(Navigation, { activeView, setActiveView, lowStockCount, theme, toggleTheme }),
+          React.createElement("main", { className: "container mx-auto p-2 sm:p-4 md:p-6" }, renderView()),
+          React.createElement(SuccessModal, { isOpen: successModal.isOpen, title: successModal.title, message: successModal.message, onClose: () => setSuccessModal({ isOpen: false, title: '', message: '' }) })
+        );
+      };
+
+      // From: index.tsx (entry point logic)
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(registration => console.log('ServiceWorker registration successful'))
+            .catch(error => console.log('ServiceWorker registration failed: ', error));
+        });
+      }
+      const rootElement = document.getElementById('root');
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(React.createElement(React.StrictMode, null, React.createElement(App, null)));
+
+    </script>
   <script type="module" src="/index.tsx"></script>
 </body>
 </html>
